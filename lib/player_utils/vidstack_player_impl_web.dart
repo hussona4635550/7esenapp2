@@ -406,7 +406,11 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
 
         // 🆕 **FORCE PLAY** on startup to fix "First Link Not Playing"
         Future.delayed(const Duration(milliseconds: 500), () {
-          js.JsObject.fromBrowserObject(player).callMethod('play');
+          try {
+            js.JsObject.fromBrowserObject(player).callMethod('play');
+          } catch (e) {
+            print('[VIDSTACK] Auto-play failed (expected if loading): $e');
+          }
         });
       },
     );

@@ -19,6 +19,10 @@ class WebProxyService {
         return urlWithCacheBuster;
       } else {
         // Production: Use our own Vercel proxy for EVERYTHING to avoid Mixed Content (HTTPS vs HTTP)
+        // Check if already proxied to avoid double-wrapping
+        if (url.contains('/api/proxy?url=')) {
+          return url;
+        }
         return '/api/proxy?url=' + Uri.encodeComponent(urlWithCacheBuster);
       }
     }
