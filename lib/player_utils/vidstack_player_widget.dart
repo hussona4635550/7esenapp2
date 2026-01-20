@@ -4,10 +4,19 @@ import 'vidstack_player_impl_stub.dart'
 
 class VidstackPlayerWidget extends StatelessWidget {
   final String url;
-  const VidstackPlayerWidget({required this.url, Key? key}) : super(key: key);
+  final List<Map<String, dynamic>> streamLinks;
+
+  const VidstackPlayerWidget({
+    required this.url,
+    this.streamLinks = const [],
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return impl.VidstackPlayerImpl(url: url);
+    return impl.VidstackPlayerImpl(
+      url: url,
+      streamLinks: streamLinks,
+    );
   }
 }

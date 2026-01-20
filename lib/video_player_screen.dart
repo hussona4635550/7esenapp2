@@ -1122,7 +1122,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (kIsWeb) {
       if (_currentStreamUrl != null) {
         return SizedBox.expand(
-          child: VidstackPlayerWidget(url: _currentStreamUrl!),
+          child: VidstackPlayerWidget(
+            url: _currentStreamUrl!,
+            streamLinks: _validStreamLinks,
+          ),
         );
       }
       return Container(color: Colors.black);

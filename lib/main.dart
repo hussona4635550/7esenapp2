@@ -94,10 +94,8 @@ Future<void> main() async {
     }
 
     // 2. Remove Web Splash Immediately (Flutter is taking over)
+    // 2. Remove Web Splash Immediately (Flutter is taking over)
     if (kIsWeb) {
-      debugPrint("Removing Web Splash...");
-      removeWebSplash(); // This removes the HTML loader
-
       debugPrint("Registering Vidstack Player...");
       try {
         registerVidstackPlayer();
@@ -818,6 +816,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         setState(() {
           _isLoading = false;
           _hasError = true;
+          if (kIsWeb) removeWebSplash();
         });
       }
       return;
@@ -832,7 +831,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           matches = processedData['matches'] ?? [];
           goals = processedData['goals'] ?? [];
           _filteredChannels = channels;
+          _filteredChannels = channels;
           _isLoading = false;
+          // REMOVE WEB SPLASH HERE (Data Loaded)
+          if (kIsWeb) removeWebSplash();
           _hasError = false;
           _channelsHasError = false;
           _newsHasError = false;
@@ -846,6 +848,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         setState(() {
           _isLoading = false;
           _hasError = true;
+          if (kIsWeb) removeWebSplash();
         });
       }
     }
@@ -1556,51 +1559,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     // LOADING STATE: Match HTML Splash (Full Screen, Black, Centered Logo)
     // WEB ONLY as requested
+    // LOADING STATE: Match HTML Splash (Full Screen, Black, Centered Logo)
+    // WEB ONLY as requested
     if (kIsWeb && _isLoading) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: Colors.black,
-        // Ensure the splash fills the ENTIRE screen, ignoring safe areas, to match HTML exactly
-        body: SizedBox.expand(
-          child: Stack(
-            alignment: Alignment.center,
-            fit: StackFit.expand,
-            children: [
-              // 1. Logo Centered Exactly (Matches HTML 1:1)
-              // Usage of Alignment.center within StackFit.expand ignores parent padding/safe areas better than Center() widget sometimes
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF7C52D8).withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        spreadRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset('assets/icon/icon.png'),
-                  ),
-                ),
-              ),
-              // 2. Loading Indicator (Below Logo)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: MediaQuery.of(context).size.height * 0.35,
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Color(0xFF7C52D8)),
-                  ),
-                ),
-              ),
-            ],
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C52D8)),
           ),
         ),
       );
