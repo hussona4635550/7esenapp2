@@ -37,7 +37,8 @@ module.exports = (req, res) => {
                 // Spoof Referer to trick servers
                 'Referer': parsedUrl.origin + '/',
                 'Origin': parsedUrl.origin
-            }
+            },
+            rejectUnauthorized: false // Allow self-signed/invalid certs (Crucial for IPTV)
         };
 
         const proxyReq = lib.request(targetUrl, options, (proxyRes) => {
