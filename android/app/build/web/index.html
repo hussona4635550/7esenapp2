@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Watch Live TV and News">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hesen TV">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <title>Hesen TV</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Preload Fonts to prevent text flashing/glitch -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=block" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=block" rel="stylesheet">
+  <style>
+    body,
+    html {
+      font-family: 'Cairo', 'Roboto', sans-serif !important;
+      /* Native App Feel Tricks */
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      overscroll-behavior-y: none;
+    }
+  </style>
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    // The value below is injected by flutter build, do not touch.
+    const serviceWorkerVersion = ""2590020979"";
+  </script>
+
+  <script src="flutter.js" defer=""></script>
+
+  <!-- Vidstack Player -->
+  <link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
+  <link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
+  <script type="module" src="https://cdn.vidstack.io/player"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      font-family: 'Cairo', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Custom Splash Screen */
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #splash.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .logo-container {
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(124, 82, 216, 0.6);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .logo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .loader {
+      margin-top: 40px;
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #7C52D8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Hide Flutter Default Loading */
+    .loading {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Custom Splash Screen -->
+  <div id="splash">
+    <div class="logo-container">
+      <img src="icons/icon-192.png" alt="7esenTV Logo">
+    </div>
+    <div class="loader"></div>
+  </div>
+
+  <!-- Flutter App Container -->
+  <div id="flutter-app"></div>
+
+  <script>
+    // ✅ Remove Splash when Flutter is ready
+    window.removeSplashFromWeb = function () {
+      const splash = document.getElementById('splash');
+      if (splash) {
+        splash.classList.add('hidden');
+        setTimeout(() => splash.remove(), 500);
+      }
+    };
+
+    // ✅ Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('[SW] Registered:', reg.scope))
+          .catch(err => console.error('[SW] Failed:', err));
+      });
+    }
+
+    // ✅ PWA Install Prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('[PWA] Install prompt available');
+    });
+
+    window.triggerInstallPrompt = function () {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          console.log('[PWA] User choice:', choice.outcome);
+          deferredPrompt = null;
+        });
+      } else {
+        console.log('[PWA] No install prompt available');
+      }
+    };
+
+    // ✅ Check if running as PWA
+    window.isPwaStandalone = function () {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+    };
+  </script>
+
+  <!-- ✅ Flutter Initialization -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>

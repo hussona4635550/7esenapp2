@@ -13,7 +13,11 @@ class WebProxyService {
       final separator = url.contains('?') ? '&' : '?';
       final urlWithCacheBuster = '$url$separator$cacheBuster';
 
-      if (kDebugMode) {
+      // Check if running explicitly on localhost to bypass proxy (supports --disable-web-security)
+      final isLocalhost = Uri.base.host.contains('localhost') ||
+          Uri.base.host.contains('127.0.0.1');
+
+      if (kDebugMode || isLocalhost) {
         // Local debugging: Return URL directly.
         // REQUIRES: Chrome with --disable-web-security
         return urlWithCacheBuster;
