@@ -64,15 +64,6 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
 
   int? _currentViewId;
 
-  void _updatePlayerSource() {
-    if (_currentPlayer != null && _currentViewId != null) {
-      // استخدام البروكسي عند التحديث أيضاً
-      final proxiedUrl = WebProxyService.proxiedUrl(widget.url);
-      print('[VIDSTACK] Updating source to: $proxiedUrl');
-      _currentPlayer!.setAttribute('src', proxiedUrl);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return HtmlElementView(
@@ -235,7 +226,13 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
         _currentPlayer = player;
 
         // 4. إعداد الرابط (مع البروكسي)
-        final proxiedUrl = WebProxyService.proxiedUrl(widget.url);
+        String finalUrl = widget.url;
+        // Fix: If url is empty but streamLinks has items, use the first one
+        if (finalUrl.isEmpty && widget.streamLinks.isNotEmpty) {
+          finalUrl = widget.streamLinks.first['url'];
+        }
+
+        final proxiedUrl = WebProxyService.proxiedUrl(finalUrl);
         player.setAttribute('src', proxiedUrl);
 
         // الخصائص
@@ -281,7 +278,7 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
           try {
             js.JsObject.fromBrowserObject(player).callMethod('exitFullscreen');
           } catch (e) {
-            print('[VIDSTACK] Error exiting fullscreen: $e');
+            print('[VIDSTACK] Error exiting fullscreen: \$e');
           }
 
           // 2. Return to Menu (Pop)
@@ -313,7 +310,7 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
             }
 
             btn.onClick.listen((_) {
-              print('[VIDSTACK] Switching source to: $name');
+              print('[VIDSTACK] Switching source to: \$name');
               final newProxiedUrl = WebProxyService.proxiedUrl(urlStr);
               player.setAttribute('src', newProxiedUrl);
               player.setAttribute('autoplay', 'true');
@@ -339,7 +336,7 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
 
         // 7. أحداث (Events)
         player.addEventListener('error', (event) {
-          print('[VIDSTACK] Error playing: $proxiedUrl');
+          print('[VIDSTACK] Error playing: \$proxiedUrl');
         });
 
         // 🆕 Resume playback after exiting fullscreen (iOS fix)
@@ -393,6 +390,9 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
 
         // Attach listeners for interaction
         player.addEventListener('click', (event) => toggleOverlay(event));
+        player.addEventListener('touchstart', (event) {
+          toggleOverlay(event);
+        });
 
         // Mouse move just shows it (PC behavior)
         player.addEventListener('mousemove', (event) {
@@ -403,6 +403,11 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
         showOverlay();
 
         element.append(player);
+
+        // 🆕 **FORCE PLAY** on startup to fix "First Link Not Playing"
+        Future.delayed(const Duration(milliseconds: 500), () {
+          js.JsObject.fromBrowserObject(player).callMethod('play');
+        });
       },
     );
   }
