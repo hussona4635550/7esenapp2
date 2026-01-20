@@ -231,6 +231,8 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
         player.setAttribute('aspect-ratio', '16/9');
         player.setAttribute(
             'user-idle-delay', '1000'); // 🆕 Hide links faster (1s)
+        player.setAttribute(
+            'toggle-media-on-pointer', 'false'); // 🆕 Disable tap-to-pause
 
         // 5. المزود (Provider)
         final provider = html.Element.tag('media-provider');
@@ -246,15 +248,13 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
 
         // --- 🆕 HTML OVERLAY START ---
         final overlay = html.DivElement()..className = 'vds-overlay-header';
-        // Use trusted tree sanitizer to allow SVG/Polyline
+        // Use Unicode for back arrow to avoid SVG sanitization issues
         overlay.setInnerHtml(
           '''
             <button class="vds-back-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;display:block">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
+              <span style="font-size:26px;line-height:1;display:block;color:white;">&#x276E;</span>
             </button>
-            <div class="vds-links-container"></div> <!-- Container for buttons -->
+            <div class="vds-links-container"></div>
           ''',
           treeSanitizer: html.NodeTreeSanitizer.trusted,
         );
@@ -315,6 +315,15 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
         // 7. أحداث (Events)
         player.addEventListener('error', (event) {
           print('[VIDSTACK] Error playing: $proxiedUrl');
+        });
+
+        // 🆕 Resume playback after exiting fullscreen (iOS fix)
+        player.addEventListener('fullscreen-change', (event) {
+          final isFullscreen = player.getAttribute('fullscreen') != null;
+          if (!isFullscreen) {
+            // Exiting fullscreen - ensure playback continues
+            js.JsObject.fromBrowserObject(player).callMethod('play');
+          }
         });
 
         element.append(player);
