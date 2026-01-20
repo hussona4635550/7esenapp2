@@ -227,13 +227,29 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
 
         // 4. إعداد الرابط (مع البروكسي)
         String finalUrl = widget.url;
-        // Fix: If url is empty but streamLinks has items, use the first one
         if (finalUrl.isEmpty && widget.streamLinks.isNotEmpty) {
           finalUrl = widget.streamLinks.first['url'];
         }
 
+        // --- التعديل الجديد هنا ---
+
+        // إذا كان الرابط IPTV، نضيف .m3u8 يدوياً قبل البروكسي للتأكد
+        if ((finalUrl.contains(':8080') || finalUrl.contains(':80')) &&
+            !finalUrl.endsWith('.m3u8')) {
+          finalUrl = '$finalUrl.m3u8';
+        }
+
+        // استخدام خدمة البروكسي الجديدة
         final proxiedUrl = WebProxyService.proxiedUrl(finalUrl);
         player.setAttribute('src', proxiedUrl);
+
+        // تحديد النوع يدوياً لضمان عمل HLS
+        if (finalUrl.contains('.m3u8')) {
+          player.setAttribute(
+              'type', 'application/x-mpegurl'); // مهم جداً للـ Vidstack
+        } else if (finalUrl.contains('.mp4')) {
+          player.setAttribute('type', 'video/mp4');
+        }
 
         // الخصائص
         player.setAttribute('title', 'Live Stream');
