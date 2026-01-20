@@ -389,8 +389,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         debugPrint(
             '[HESEN PLAYER] URL did not match any handler. Playing raw URL.');
         String urlToPlay = urlToProcess;
-        // Logic for skipping manual redirect is already in native player handling
         videoUrlToLoad = urlToPlay;
+
+        // ✅ WEB OPTIMIZATION: For generic links on Web, use Vidstack directly
+        if (kIsWeb) {
+          debugPrint('[WEB] Generic URL detected - using Vidstack directly');
+          if (mounted) {
+            setState(() {
+              _currentStreamUrl = videoUrlToLoad;
+              _isLoading = false;
+              _hasError = false;
+            });
+            _showControls();
+          }
+          return;
+        }
       }
 
       if (videoUrlToLoad == null || videoUrlToLoad.isEmpty)
