@@ -881,18 +881,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   Widget _buildControls(BuildContext context) {
     if (kIsWeb) {
-      // On Web, allow Vidstack to handle controls. Only show Stream Selector if available.
-      if (_validStreamLinks.isNotEmpty) {
-        // We wrap in IgnorePointer(ignoring: false) because the parent might be ignoring if controls are "hidden"
-        // But logic says _isControlsVisible dictates ignoring.
-        // For web, let's just show it always or handle visibility?
-        // Vidstack controls auto-hide.
-        return Positioned(
-            top: 10,
-            left: 0,
-            right: 0,
-            child: Center(child: _buildStreamSelector()));
-      }
+      // WEB: Controls (including Stream Links) are now inside the Vidstack Overlay.
+      // So we return empty here to hide the "Old" external buttons.
       return const SizedBox.shrink();
     }
 

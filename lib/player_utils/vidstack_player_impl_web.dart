@@ -128,33 +128,33 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
             }
 
             .vds-back-btn {
-              background: rgba(255, 255, 255, 0.15);
-              border: none;
+              background: rgba(255, 255, 255, 0.08);
+              border: 1px solid rgba(255, 255, 255, 0.15);
               border-radius: 50%;
-              width: 40px;
-              height: 40px;
+              width: 44px;
+              height: 44px;
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: center;
               color: white;
               margin-right: 15px;
-              backdrop-filter: blur(5px);
-              transition: background 0.2s;
+              backdrop-filter: blur(15px);
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             }
             
             .vds-back-btn:hover {
-              background: rgba(255, 255, 255, 0.3);
+              background: rgba(124, 82, 216, 0.4);
+              border-color: rgba(124, 82, 216, 0.8);
+              transform: scale(1.1);
+              box-shadow: 0 0 15px rgba(124, 82, 216, 0.4);
             }
-
-            .vds-title {
-              color: white;
-              font-family: 'Cairo', sans-serif;
-              font-size: 16px;
-              font-weight: bold;
-              text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-              margin-left: 10px;
-              white-space: nowrap;
+            
+            .vds-back-btn svg {
+              width: 26px;
+              height: 26px;
+              filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
             }
 
             /* Container for Quality/Server Buttons */
@@ -227,11 +227,10 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
           ..className = 'vds-overlay-header'
           ..innerHtml = '''
             <button class="vds-back-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" style="display:block">
-                <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
-            <div class="vds-title">Live Stream</div>
             <div class="vds-links-container"></div> <!-- Container for buttons -->
           ''';
 
