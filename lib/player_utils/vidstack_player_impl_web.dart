@@ -4,6 +4,7 @@ import 'dart:async'; // Needed for Timer
 import 'package:flutter/material.dart';
 import 'package:hesen/player_utils/video_player_web.dart'; // Import the registry
 import 'package:hesen/services/web_proxy_service.dart';
+import 'package:wakelock_plus/wakelock_plus.dart'; // 🆕 Wake Lock
 
 class VidstackPlayerImpl extends StatefulWidget {
   final String url;
@@ -32,6 +33,18 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
       _currentPlayer!.setAttribute('src', newProxiedUrl);
       _updateActiveButton(widget.url);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.enable(); // 🆕 Prevent screen sleep during playback
+  }
+
+  @override
+  void dispose() {
+    WakelockPlus.disable(); // 🆕 Re-enable screen sleep
+    super.dispose();
   }
 
   void _updateActiveButton(String currentUrl) {
@@ -338,15 +351,15 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
           }
         });
 
-        // 🆕 Mobile Auto-Hide Fix: Force hide overlay on touch devices after delay
-        // We listen to touch events to reset a timer
+        // 🆕 Mobile Auto-Hide Logic: Toggle on Tap + Auto Hide
         Timer? overlayTimer;
-        void resetOverlayTimer() {
+
+        void showOverlay() {
           overlay.style.opacity = '1';
           overlay.style.pointerEvents = 'auto';
           overlayTimer?.cancel();
+          // Auto-hide after 4 seconds if playing
           overlayTimer = Timer(const Duration(seconds: 4), () {
-            // Only hide if the video is playing
             final isPaused = player.getAttribute('paused') != null;
             if (!isPaused) {
               overlay.style.opacity = '0';
@@ -355,13 +368,39 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
           });
         }
 
+        void hideOverlay() {
+          overlay.style.opacity = '0';
+          overlay.style.pointerEvents = 'none';
+          overlayTimer?.cancel();
+        }
+
+        void toggleOverlay(html.Event event) {
+          // Prevent toggling if clicking a specific button
+          if (event.target is html.Element) {
+            final target = event.target as html.Element;
+            if (target.tagName == 'BUTTON' ||
+                target.closest('button') != null) {
+              return; // Let the button handle the click
+            }
+          }
+
+          if (overlay.style.opacity == '0') {
+            showOverlay();
+          } else {
+            hideOverlay();
+          }
+        }
+
         // Attach listeners for interaction
-        player.addEventListener('touchstart', (event) => resetOverlayTimer());
-        player.addEventListener('click', (event) => resetOverlayTimer());
-        player.addEventListener('mousemove', (event) => resetOverlayTimer());
+        player.addEventListener('click', (event) => toggleOverlay(event));
+
+        // Mouse move just shows it (PC behavior)
+        player.addEventListener('mousemove', (event) {
+          if (overlay.style.opacity == '0') showOverlay();
+        });
 
         // Initial start
-        resetOverlayTimer();
+        showOverlay();
 
         element.append(player);
       },
