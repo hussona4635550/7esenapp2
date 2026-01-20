@@ -220,15 +220,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (_validStreamLinks.isEmpty) {
       if (widget.initialUrl.isNotEmpty) urlToPlay = widget.initialUrl;
     } else {
-      final indexInList =
-          _findUrlIndexInList(widget.initialUrl, _validStreamLinks);
-      if (indexInList != -1) {
-        _selectedStreamIndex = indexInList;
-        urlToPlay = _validStreamLinks[_selectedStreamIndex]['url']?.toString();
-      } else {
-        _selectedStreamIndex = 0;
-        urlToPlay = _validStreamLinks[0]['url']?.toString();
-      }
+      // 🆕 ALWAYS choose the first link as default if available
+      _selectedStreamIndex = 0;
+      urlToPlay = _validStreamLinks[0]['url']?.toString();
     }
 
     if (urlToPlay == null || urlToPlay.isEmpty) {

@@ -1564,6 +1564,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (kIsWeb && _isLoading) {
       return const Scaffold(
         backgroundColor: Colors.black,
+        // Remove redundant logo here, because HTML splash already shows it.
+        // Just show a subtle loader to signal Flutter is taking over.
         body: Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C52D8)),

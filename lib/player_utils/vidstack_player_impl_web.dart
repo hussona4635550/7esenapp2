@@ -20,15 +20,35 @@ class VidstackPlayerImpl extends StatefulWidget {
 
 class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
   html.Element? _currentPlayer;
-  int? _currentViewId;
+  html.Element? _linksContainer;
 
   @override
   void didUpdateWidget(VidstackPlayerImpl oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url) {
-      _updatePlayerSource();
+    if (widget.url != oldWidget.url && _currentPlayer != null) {
+      print('[VIDSTACK] URL updated from parent: ${widget.url}');
+      final newProxiedUrl = WebProxyService.proxiedUrl(widget.url);
+      _currentPlayer!.setAttribute('src', newProxiedUrl);
+      _updateActiveButton(widget.url);
     }
   }
+
+  void _updateActiveButton(String currentUrl) {
+    if (_linksContainer == null) return;
+    for (var child in _linksContainer!.children) {
+      if (child is html.ButtonElement) {
+        // We store the original raw URL in a data attribute for comparison
+        final btnUrl = child.dataset['raw-url'];
+        if (btnUrl == currentUrl) {
+          child.classes.add('active');
+        } else {
+          child.classes.remove('active');
+        }
+      }
+    }
+  }
+
+  int? _currentViewId;
 
   void _updatePlayerSource() {
     if (_currentPlayer != null && _currentViewId != null) {
@@ -162,9 +182,9 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
               display: flex;
               gap: 10px;
               overflow-x: auto;
-              margin-right: auto; /* Push to the right (RTL logic might inverse this, but flex works) */
-              padding-left: 20px;
-              scrollbar-width: none; /* Hide scrollbar Firefox */
+              flex: 1; /* Take remaining space */
+              padding: 0 10px;
+              scrollbar-width: none;
             }
             .vds-links-container::-webkit-scrollbar { 
               display: none; /* Hide scrollbar Chrome/Safari */
@@ -209,6 +229,8 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
         player.setAttribute('playsinline', 'true'); // مهم للموبايل
         player.setAttribute('crossorigin', 'anonymous');
         player.setAttribute('aspect-ratio', '16/9');
+        player.setAttribute(
+            'user-idle-delay', '1000'); // 🆕 Hide links faster (1s)
 
         // 5. المزود (Provider)
         final provider = html.Element.tag('media-provider');
@@ -223,16 +245,19 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
         player.append(layout);
 
         // --- 🆕 HTML OVERLAY START ---
-        final overlay = html.DivElement()
-          ..className = 'vds-overlay-header'
-          ..innerHtml = '''
+        final overlay = html.DivElement()..className = 'vds-overlay-header';
+        // Use trusted tree sanitizer to allow SVG/Polyline
+        overlay.setInnerHtml(
+          '''
             <button class="vds-back-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;display:block">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
             <div class="vds-links-container"></div> <!-- Container for buttons -->
-          ''';
+          ''',
+          treeSanitizer: html.NodeTreeSanitizer.trusted,
+        );
 
         // Back Button Action
         overlay.querySelector('.vds-back-btn')!.onClick.listen((_) async {
@@ -252,31 +277,32 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
 
         // 🆕 Dynamic Link Buttons Generation
         final linksContainer = overlay.querySelector('.vds-links-container')!;
+        _linksContainer = linksContainer;
 
         for (var link in widget.streamLinks) {
           final name = link['name'] ?? 'Stream';
-          final url = link['url'];
+          final urlStr = link['url']?.toString();
 
-          if (url != null && url.isNotEmpty) {
+          if (urlStr != null && urlStr.isNotEmpty) {
             final btn = html.ButtonElement()
               ..className = 'vds-link-btn'
               ..innerText = name;
 
+            // 🆕 Store raw URL for reliable comparison
+            btn.dataset['raw-url'] = urlStr;
+
             // Highlight if it's the current URL
-            if (url == widget.url) {
+            if (urlStr == widget.url) {
               btn.classes.add('active');
             }
 
             btn.onClick.listen((_) {
               print('[VIDSTACK] Switching source to: $name');
-              final newProxiedUrl = WebProxyService.proxiedUrl(url);
+              final newProxiedUrl = WebProxyService.proxiedUrl(urlStr);
               player.setAttribute('src', newProxiedUrl);
-              player.setAttribute('autoplay', 'true'); // Ensure it plays
+              player.setAttribute('autoplay', 'true');
 
-              // Update Active State Visuals
-              linksContainer.children
-                  .forEach((c) => c.classes.remove('active'));
-              btn.classes.add('active');
+              _updateActiveButton(urlStr);
             });
 
             linksContainer.append(btn);
