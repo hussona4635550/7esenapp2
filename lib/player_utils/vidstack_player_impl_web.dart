@@ -1,5 +1,6 @@
 import 'dart:html' as html;
 import 'dart:js' as js; // Needed for interop
+import 'dart:async'; // Needed for Timer
 import 'package:flutter/material.dart';
 import 'package:hesen/player_utils/video_player_web.dart'; // Import the registry
 import 'package:hesen/services/web_proxy_service.dart';
@@ -180,10 +181,12 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
             /* Container for Quality/Server Buttons */
             .vds-links-container {
               display: flex;
-              gap: 10px;
+              gap: 12px;
               overflow-x: auto;
-              flex: 1; /* Take remaining space */
-              padding: 0 10px;
+              flex: 1; 
+              padding: 10px 5px; /* Increased padding to prevent clipping */
+              align-items: center; /* Center items vertically */
+              height: 50px; /* Explicit height */
               scrollbar-width: none;
             }
             .vds-links-container::-webkit-scrollbar { 
@@ -309,6 +312,15 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
           }
         }
 
+        // 🆕 Force first button active if none matched (Default Selection Fix)
+        if (linksContainer.children.isNotEmpty) {
+          bool hasActive =
+              linksContainer.children.any((c) => c.classes.contains('active'));
+          if (!hasActive) {
+            linksContainer.children.first.classes.add('active');
+          }
+        }
+
         player.append(overlay);
         // --- 🆕 HTML OVERLAY END ---
 
@@ -325,6 +337,31 @@ class _VidstackPlayerImplState extends State<VidstackPlayerImpl> {
             js.JsObject.fromBrowserObject(player).callMethod('play');
           }
         });
+
+        // 🆕 Mobile Auto-Hide Fix: Force hide overlay on touch devices after delay
+        // We listen to touch events to reset a timer
+        Timer? overlayTimer;
+        void resetOverlayTimer() {
+          overlay.style.opacity = '1';
+          overlay.style.pointerEvents = 'auto';
+          overlayTimer?.cancel();
+          overlayTimer = Timer(const Duration(seconds: 4), () {
+            // Only hide if the video is playing
+            final isPaused = player.getAttribute('paused') != null;
+            if (!isPaused) {
+              overlay.style.opacity = '0';
+              overlay.style.pointerEvents = 'none';
+            }
+          });
+        }
+
+        // Attach listeners for interaction
+        player.addEventListener('touchstart', (event) => resetOverlayTimer());
+        player.addEventListener('click', (event) => resetOverlayTimer());
+        player.addEventListener('mousemove', (event) => resetOverlayTimer());
+
+        // Initial start
+        resetOverlayTimer();
 
         element.append(player);
       },
