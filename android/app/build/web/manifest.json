@@ -1,0 +1,44 @@
+{
+    "name": "7esenTV",
+    "short_name": "7esenTV",
+    "description": "شاهد القنوات الرياضية والمباريات مباشرة مع جودة عالية",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#673AB7",
+    "orientation": "any",
+    "dir": "rtl",
+    "lang": "ar",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "entertainment",
+        "sports",
+        "video"
+    ],
+    "shortcuts": [
+        {
+            "name": "القنوات المباشرة",
+            "url": "/?tab=channels",
+            "description": "شاهد القنوات مباشرة"
+        },
+        {
+            "name": "المباريات",
+            "url": "/?tab=matches",
+            "description": "شاهد المباريات الحية"
+        }
+    ]
+}
